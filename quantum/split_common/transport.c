@@ -21,6 +21,10 @@ static pin_t encoders_pad[] = ENCODERS_PAD_A;
 #    define NUMBER_OF_ENCODERS (sizeof(encoders_pad) / sizeof(pin_t))
 #endif
 
+#ifdef CUSTOM_SERIAL_DATA_ENABLE
+#    include "custom_serial.h"
+#endif
+
 #if defined(USE_I2C)
 
 #    include "i2c_master.h"
@@ -136,6 +140,10 @@ typedef struct _Serial_s2m_buffer_t {
     uint8_t      encoder_state[NUMBER_OF_ENCODERS];
 #    endif
 
+#    ifdef CUSTOM_SERIAL_DATA_ENABLE
+    uint8_t custom_data[CUSTOM_SERIAL_S2M_BYTES];
+#    endif
+
 } Serial_s2m_buffer_t;
 
 typedef struct _Serial_m2s_buffer_t {
@@ -145,6 +153,11 @@ typedef struct _Serial_m2s_buffer_t {
 #    ifdef WPM_ENABLE
     uint8_t current_wpm;
 #    endif
+
+#    ifdef CUSTOM_SERIAL_DATA_ENABLE
+    uint8_t custom_data[CUSTOM_SERIAL_M2S_BYTES];
+#    endif
+
 } Serial_m2s_buffer_t;
 
 #    if defined(RGBLIGHT_ENABLE) && defined(RGBLIGHT_SPLIT)
@@ -251,6 +264,11 @@ bool transport_master(matrix_row_t matrix[]) {
     // Write wpm to slave
     serial_m2s_buffer.current_wpm = get_current_wpm();
 #    endif
+
+#    ifdef CUSTOM_SERIAL_DATA_ENABLE
+    set_custom_serial_data_for_transport(true, (uint8_t *)serial_m2s_buffer.custom_data);
+    set_custom_serial_data_from_transport(true, (uint8_t *)serial_s2m_buffer.custom_data);
+#    endif
     return true;
 }
 
@@ -270,6 +288,11 @@ void transport_slave(matrix_row_t matrix[]) {
 
 #    ifdef WPM_ENABLE
     set_current_wpm(serial_m2s_buffer.current_wpm);
+#    endif
+
+#    ifdef CUSTOM_SERIAL_DATA_ENABLE
+    set_custom_serial_data_for_transport(false, (uint8_t *)serial_s2m_buffer.custom_data);
+    set_custom_serial_data_from_transport(false, (uint8_t *)serial_m2s_buffer.custom_data);
 #    endif
 }
 
