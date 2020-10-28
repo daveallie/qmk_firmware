@@ -1,5 +1,9 @@
 #include QMK_KEYBOARD_H
 
+#include <stdio.h>
+#include <print.h>
+#include "custom_serial.c"
+
 enum layers {
     _QWERTY,
     _COLEMAK,
@@ -159,19 +163,13 @@ void keyboard_post_init_user(void) {
 
 #ifdef OLED_DRIVER_ENABLE
 
-static void render_logo(void) {
-    static const char PROGMEM qmk_logo[] = {
-        0x80,0x81,0x82,0x83,0x84,0x85,0x86,0x87,0x88,0x89,0x8a,0x8b,0x8c,0x8d,0x8e,0x8f,0x90,0x91,0x92,0x93,0x94,
-        0xa0,0xa1,0xa2,0xa3,0xa4,0xa5,0xa6,0xa7,0xa8,0xa9,0xaa,0xab,0xac,0xad,0xae,0xaf,0xb0,0xb1,0xb2,0xb3,0xb4,
-        0xc0,0xc1,0xc2,0xc3,0xc4,0xc5,0xc6,0xc7,0xc8,0xc9,0xca,0xcb,0xcc,0xcd,0xce,0xcf,0xd0,0xd1,0xd2,0xd3,0xd4,0
-    };
-
-    oled_write_P(qmk_logo, false);
+static void print_data(char* data_from_other_half_chars) {
+    oled_write_ln_P(PSTR("DATA"), false);
+    oled_write_ln(data_from_other_half_chars, false);
 }
 
-static void print_status_narrow(void) {
+static void print_status_narrow(char* data_from_other_half_chars) {
     // Print current mode
-    oled_write_P(PSTR("\n\n"), false);
     oled_write_ln_P(PSTR("MODE"), false);
     oled_write_ln_P(PSTR(""), false);
     if (is_mac_mode) {
@@ -213,20 +211,36 @@ static void print_status_narrow(void) {
     oled_write_P(PSTR("\n\n"), false);
     led_t led_usb_state = host_keyboard_led_state();
     oled_write_ln_P(PSTR("CPSLK"), led_usb_state.caps_lock);
+
+    oled_write_ln_P(PSTR("\nDATA"), false);
+    oled_write_ln(data_from_other_half_chars, false);
 }
 
 oled_rotation_t oled_init_user(oled_rotation_t rotation) {
-    if (is_keyboard_master()) {
+//    if (is_keyboard_master()) {
         return OLED_ROTATION_270;
-    }
-    return rotation;
+//    }
+//    return rotation;
 }
 
 void oled_task_user(void) {
-    if (is_keyboard_master()) {
-        print_status_narrow();
+    bool is_master = is_keyboard_master();
+    uint8_t data_from_other_half = get_custom_serial_data(is_master)[0];
+    char data_from_other_half_chars[4];
+    data_from_other_half_chars[0] = (data_from_other_half / 100) + 0x30;
+    data_from_other_half_chars[1] = ((data_from_other_half / 10) % 10) + 0x30;
+    data_from_other_half_chars[2] = (data_from_other_half % 10) + 0x30;
+    data_from_other_half_chars[3] = 0x00;
+
+    if (is_master) {
+        print_status_narrow(data_from_other_half_chars);
     } else {
-        render_logo();
+        print_data(data_from_other_half_chars);
+    }
+
+    if (random() % 100 == 0) {
+        uint8_t data[] = { random() };
+        set_custom_serial_data(is_master, data);
     }
 }
 
