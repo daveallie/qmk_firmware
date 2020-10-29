@@ -20,6 +20,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
+#define RAW_USAGE_PAGE 0xFF60
+#define RAW_USAGE_ID 0x61
+
 //#define USE_MATRIX_I2C
 
 /* Select hand configuration */
@@ -51,11 +54,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define RGBLIGHT_SLEEP
 */
 
-
-
 #define ENCODERS_PAD_A { F4 }
 #define ENCODERS_PAD_B { F5 }
 #define ENCODER_RESOLUTION 4
 
 #define TAP_CODE_DELAY 10
 
+#undef OLED_FONT_H
+#define OLED_FONT_H "glcdfont_daveallie.c"

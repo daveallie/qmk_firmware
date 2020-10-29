@@ -329,18 +329,28 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     return true;
 }
 
+#ifdef RAW_ENABLE
+
+void raw_hid_receive(uint8_t *data, uint8_t length) {
+    if (is_keyboard_master() && length >= 4) {
+        if (data[0] == 0x01 && data[1] == 0x11) {
+            set_time(data[2], data[3]);
+        }
+    }
+}
+
+#endif
+
 #ifdef ENCODER_ENABLE
 
 bool encoder_update_user(uint8_t index, bool clockwise) {
-    if (index == 0) {
-        if (clockwise) {
-            for (int i = 0; i < 5; i += 1) {
-                tap_code(KC_WH_D);
-            }
-        } else {
-            for (int i = 0; i < 5; i += 1) {
-                tap_code(KC_WH_U);
-            }
+    if (clockwise) {
+        for (int i = 0; i < 5; i += 1) {
+            tap_code(KC_WH_D);
+        }
+    } else {
+        for (int i = 0; i < 5; i += 1) {
+            tap_code(KC_WH_U);
         }
     }
     return true;

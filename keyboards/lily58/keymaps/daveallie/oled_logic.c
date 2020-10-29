@@ -154,49 +154,84 @@ static bool render_chevrons(void) {
     return res;
 }
 
-static void print_status_narrow(void) {
-    // Print current mode
-    oled_write_ln_P(PSTR("MODE"), false);
-    oled_write_ln_P(PSTR(""), false);
-    if (get_is_mac_mode()) {
-        oled_write_ln_P(PSTR("MAC"), false);
+static void render_left_screen(void) {
+    bool clock_enabled = is_time_set();
+
+    uint8_t start_row;
+    if (clock_enabled) {
+        start_row = 9;
     } else {
-        oled_write_ln_P(PSTR("WIN"), false);
+        start_row = 11;
     }
 
+    oled_set_cursor(0, start_row);
+    if (get_caps_lock()) {
+        char line1[6] = { 0x85, 0x86, 0x87, 0x88, 0x89, 0 };
+        char line2[6] = { 0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0 };
+        oled_write(line1, false);
+        oled_write_ln(line2, false);
+    } else {
+        char line1[6] = { 0x80, 0x81, 0x82, 0x83, 0x84, 0 };
+        char line2[6] = { 0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0 };
+        oled_write(line1, false);
+        oled_write_ln(line2, false);
+    }
+
+    oled_set_cursor(3, start_row + 3);
+    if (get_is_mac_mode()) {
+        char line1[3] = { 0x95, 0x96, 0 };
+        char line2[3] = { 0xB5, 0xB6, 0 };
+        oled_write(line1, false);
+        oled_set_cursor(3, start_row + 4);
+        oled_write(line2, false);
+    } else {
+        char line1[3] = { 0x97, 0x98, 0 };
+        char line2[3] = { 0xB7, 0xB8, 0 };
+        oled_write(line1, false);
+        oled_set_cursor(3, start_row + 4);
+        oled_write(line2, false);
+    }
+
+    oled_set_cursor(0, start_row + 3);
     switch (get_default_layer()) {
         case _QWERTY:
-            oled_write_ln_P(PSTR("Qwrt"), false);
+            oled_write_P(PSTR("QR "), false);
+            oled_set_cursor(0, start_row + 4);
+            oled_write_P(PSTR("TY "), false);
             break;
         case _COLEMAK:
-            oled_write_ln_P(PSTR("Clmk"), false);
+            oled_write_P(PSTR("CL "), false);
+            oled_set_cursor(0, start_row + 4);
+            oled_write_P(PSTR("MK "), false);
             break;
         default:
-            oled_write_P(PSTR("Undef"), false);
+            oled_write_P(PSTR("?? "), false);
+            oled_set_cursor(0, start_row + 4);
+            oled_write_P(PSTR("?? "), false);
     }
-    oled_write_P(PSTR("\n\n"), false);
-    // Print current layer
-    oled_write_ln_P(PSTR("LAYER"), false);
-    switch (get_layer()) {
-        case _COLEMAK:
-        case _QWERTY:
-            oled_write_P(PSTR("Base\n"), false);
-            break;
-        case _RAISE:
-            oled_write_P(PSTR("Raise"), false);
-            break;
-        case _LOWER:
-            oled_write_P(PSTR("Lower"), false);
-            break;
-        case _ADJUST:
-            oled_write_P(PSTR("Adj\n"), false);
-            break;
-        default:
-            oled_write_ln_P(PSTR("Undef"), false);
+
+    if (clock_enabled) {
+        oled_set_cursor(0, 14);
+        oled_write_ln_P(PSTR(""), false);
+        oled_write_ln(get_time_string(), false);
     }
-    oled_write_P(PSTR("\n\n"), false);
-    oled_write_ln_P(PSTR("CPSLK"), get_caps_lock());
 }
+
+void render_right_screen(void) {
+    bool clock_enabled = is_time_set();
+
+    if (!render_chevrons()) {
+        // did render anything, can render something else here
+    }
+
+    oled_set_cursor(0, 15);
+    if (clock_enabled) {
+        oled_write_ln(get_time_string(), false);
+    } else {
+        oled_write_ln_P(PSTR(""), false);
+    }
+}
+
 
 oled_rotation_t oled_init_user(oled_rotation_t rotation) {
     return OLED_ROTATION_270;
@@ -214,10 +249,8 @@ void oled_task_user(void) {
     }
 
     if (eeconfig_read_handedness()) {
-        print_status_narrow();
+        render_left_screen();
     } else {
-        if (!render_chevrons()) {
-            // did render anything, can render something else here
-        }
+        render_right_screen();
     }
 }

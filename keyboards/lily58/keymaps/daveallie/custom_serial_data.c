@@ -1,12 +1,16 @@
+#include <stdio.h>
 #include "custom_serial.c"
 
 typedef union {
     uint8_t raw[CUSTOM_SERIAL_M2S_BYTES];
     struct {
-        bool is_mac_mode;
-        bool caps_lock;
-        uint8_t default_layer;
-        uint8_t layer;
+        bool is_mac_mode      : 1;
+        bool caps_lock        : 1;
+        bool time_set         : 1;
+        uint8_t default_layer : 4;
+        uint8_t layer         : 4;
+        uint8_t hours         : 8;
+        uint8_t minutes       : 8;
     };
 } master_data_t;
 master_data_t master_data;
@@ -16,6 +20,8 @@ typedef union {
     struct {};
 } slave_data_t;
 slave_data_t slave_data;
+
+char time_string[6];
 
 uint8_t get_default_layer(void) {
     return master_data.default_layer;
@@ -48,6 +54,25 @@ bool get_caps_lock(void) {
 void set_caps_lock(bool caps_lock) {
     master_data.caps_lock = caps_lock;
 }
+
+bool is_time_set(void) {
+    return master_data.time_set;
+}
+
+char* get_time_string(void) {
+    if (master_data.time_set) {
+        snprintf(time_string, sizeof(time_string), "%2d:%02d", master_data.hours % 100, master_data.minutes % 100);
+    }
+
+    return time_string;
+}
+
+void set_time(uint8_t hours, uint8_t minutes) {
+    master_data.hours = hours;
+    master_data.minutes = minutes;
+    master_data.time_set = true;
+}
+
 
 void load_data(void) {
     if (is_keyboard_master()) {
