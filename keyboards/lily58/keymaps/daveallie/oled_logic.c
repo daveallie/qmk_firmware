@@ -204,9 +204,12 @@ static void render_left_screen(void) {
     }
 
     if (clock_enabled) {
-        oled_set_cursor(0, 14);
-        oled_write_ln_P(PSTR(""), false);
-        oled_write_ln(get_time_string(), false);
+        // don't turn on the OLED just to update the time
+        if (is_oled_on()) {
+            oled_set_cursor(0, 14);
+            oled_write_ln_P(PSTR(""), false);
+            oled_write_ln(get_time_string(), false);
+        }
     }
 }
 
@@ -219,7 +222,10 @@ void render_right_screen(void) {
 
     oled_set_cursor(0, 15);
     if (clock_enabled) {
-        oled_write_ln(get_time_string(), false);
+        // don't turn on the OLED just to update the time
+        if (is_oled_on()) {
+            oled_write_ln(get_time_string(), false);
+        }
     } else {
         oled_write_ln_P(PSTR(""), false);
     }
