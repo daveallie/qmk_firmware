@@ -1,8 +1,6 @@
 #include QMK_KEYBOARD_H
 
-#include <stdio.h>
-#include <print.h>
-#include "custom_serial.c"
+#include "custom_serial_data.c"
 
 enum layers {
     _QWERTY,
@@ -38,7 +36,7 @@ enum custom_keycodes {
         KC_ESC,  K11, K12, K13, K14, K15,                      K16, K17, K18, K19, K1A, KC_BSPC, \
         KC_TAB,  K21, K22, K23, K24, K25,                      K26, K27, K28, K29, K2A, KC_QUOT, \
         KC_LSFT, K31, K32, K33, K34, K35,    KC_MUTE, XXXXXXX, K36, K37, K38, K39, K3A, KC_RSFT, \
-                 KC_LCTRL, KC_LGUI, KC_LOWER, KC_SPC,  KC_ENT, KC_RAISE, KC_RGUI, KC_RCTRL       \
+                 KC_LCTRL, KC_LGUI, KC_LOWER, KC_ENT,  KC_SPC, KC_RAISE, KC_RGUI, KC_RCTRL       \
     )
 #define LAYOUT_lily58_base_wrapper(...) LAYOUT_lily58_base(__VA_ARGS__)
 #define _____________BLANK_4______________         _______, _______, _______, _______
@@ -162,88 +160,7 @@ void keyboard_post_init_user(void) {
 
 
 #ifdef OLED_DRIVER_ENABLE
-
-static void print_data(char* data_from_other_half_chars) {
-    oled_write_ln_P(PSTR("DATA"), false);
-    oled_write_ln(data_from_other_half_chars, false);
-}
-
-static void print_status_narrow(char* data_from_other_half_chars) {
-    // Print current mode
-    oled_write_ln_P(PSTR("MODE"), false);
-    oled_write_ln_P(PSTR(""), false);
-    if (is_mac_mode) {
-        oled_write_ln_P(PSTR("MAC"), false);
-    } else {
-        oled_write_ln_P(PSTR("WIN"), false);
-    }
-
-    switch (get_highest_layer(default_layer_state)) {
-        case _QWERTY:
-            oled_write_ln_P(PSTR("Qwrt"), false);
-            break;
-        case _COLEMAK:
-            oled_write_ln_P(PSTR("Clmk"), false);
-            break;
-        default:
-            oled_write_P(PSTR("Undef"), false);
-    }
-    oled_write_P(PSTR("\n\n"), false);
-    // Print current layer
-    oled_write_ln_P(PSTR("LAYER"), false);
-    switch (get_highest_layer(layer_state)) {
-        case _COLEMAK:
-        case _QWERTY:
-            oled_write_P(PSTR("Base\n"), false);
-            break;
-        case _RAISE:
-            oled_write_P(PSTR("Raise"), false);
-            break;
-        case _LOWER:
-            oled_write_P(PSTR("Lower"), false);
-            break;
-        case _ADJUST:
-            oled_write_P(PSTR("Adj\n"), false);
-            break;
-        default:
-            oled_write_ln_P(PSTR("Undef"), false);
-    }
-    oled_write_P(PSTR("\n\n"), false);
-    led_t led_usb_state = host_keyboard_led_state();
-    oled_write_ln_P(PSTR("CPSLK"), led_usb_state.caps_lock);
-
-    oled_write_ln_P(PSTR("\nDATA"), false);
-    oled_write_ln(data_from_other_half_chars, false);
-}
-
-oled_rotation_t oled_init_user(oled_rotation_t rotation) {
-//    if (is_keyboard_master()) {
-        return OLED_ROTATION_270;
-//    }
-//    return rotation;
-}
-
-void oled_task_user(void) {
-    bool is_master = is_keyboard_master();
-    uint8_t data_from_other_half = get_custom_serial_data(is_master)[0];
-    char data_from_other_half_chars[4];
-    data_from_other_half_chars[0] = (data_from_other_half / 100) + 0x30;
-    data_from_other_half_chars[1] = ((data_from_other_half / 10) % 10) + 0x30;
-    data_from_other_half_chars[2] = (data_from_other_half % 10) + 0x30;
-    data_from_other_half_chars[3] = 0x00;
-
-    if (is_master) {
-        print_status_narrow(data_from_other_half_chars);
-    } else {
-        print_data(data_from_other_half_chars);
-    }
-
-    if (random() % 100 == 0) {
-        uint8_t data[] = { random() };
-        set_custom_serial_data(is_master, data);
-    }
-}
-
+#    include "oled_logic.c"
 #endif
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
