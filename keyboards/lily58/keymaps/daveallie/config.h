@@ -23,15 +23,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define RAW_USAGE_PAGE 0xFF60
 #define RAW_USAGE_ID 0x61
 
-//#define USE_MATRIX_I2C
-
 /* Select hand configuration */
 
 // #define MASTER_LEFT
 // #define MASTER_RIGHT
 #define EE_HANDS
-
-// #define SSD1306OLED
 
 #define USE_SERIAL_PD2
 
@@ -54,6 +50,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define RGBLIGHT_SLEEP
 */
 
+#define OLED_TIMEOUT 45000
+
 #define ENCODERS_PAD_A { F4 }
 #define ENCODERS_PAD_B { F5 }
 #define ENCODER_RESOLUTION 4
@@ -62,3 +60,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #undef OLED_FONT_H
 #define OLED_FONT_H "glcdfont_daveallie.c"
+
+#define NO_ACTION_MACRO
+#define NO_ACTION_FUNCTION
