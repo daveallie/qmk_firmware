@@ -148,16 +148,16 @@ static bool render_chevrons(void) {
 }
 
 static void render_left_screen(void) {
-    bool clock_enabled = is_time_set();
-
-    uint8_t start_row;
-    if (clock_enabled) {
-        start_row = 9;
-    } else {
-        start_row = 11;
+    if (is_time_set()) {
+        // don't turn on the OLED just to update the time
+        if (is_oled_on()) {
+            oled_write_ln(get_time_string(), false);
+        }
     }
 
-    oled_set_cursor(0, start_row);
+    uint8_t row = 11;
+
+    oled_set_cursor(0, row);
     if (get_caps_lock()) {
         char line1[6] = { 0x85, 0x86, 0x87, 0x88, 0x89, 0 };
         char line2[6] = { 0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0 };
@@ -170,64 +170,49 @@ static void render_left_screen(void) {
         oled_write_ln(line2, false);
     }
 
-    oled_set_cursor(3, start_row + 3);
+    row = row + 3;
+    oled_set_cursor(3, row);
     if (get_is_mac_mode()) {
         char line1[3] = { 0x95, 0x96, 0 };
         char line2[3] = { 0xB5, 0xB6, 0 };
         oled_write(line1, false);
-        oled_set_cursor(3, start_row + 4);
+        oled_set_cursor(3, row + 1);
         oled_write(line2, false);
     } else {
         char line1[3] = { 0x97, 0x98, 0 };
         char line2[3] = { 0xB7, 0xB8, 0 };
         oled_write(line1, false);
-        oled_set_cursor(3, start_row + 4);
+        oled_set_cursor(3, row + 1);
         oled_write(line2, false);
     }
 
-    oled_set_cursor(0, start_row + 3);
+    oled_set_cursor(0, row);
     switch (get_default_layer()) {
         case _QWERTY:
-            oled_write_P(PSTR("QR "), false);
-            oled_set_cursor(0, start_row + 4);
+            oled_write_P(PSTR("QR \r"), false);
             oled_write_P(PSTR("TY "), false);
             break;
         case _COLEMAK:
-            oled_write_P(PSTR("CL "), false);
-            oled_set_cursor(0, start_row + 4);
+            oled_write_P(PSTR("CL \r"), false);
             oled_write_P(PSTR("MK "), false);
             break;
         default:
+            oled_write_P(PSTR("?? \r"), false);
             oled_write_P(PSTR("?? "), false);
-            oled_set_cursor(0, start_row + 4);
-            oled_write_P(PSTR("?? "), false);
-    }
-
-    if (clock_enabled) {
-        // don't turn on the OLED just to update the time
-        if (is_oled_on()) {
-            oled_set_cursor(0, 14);
-            oled_write_ln_P(PSTR(""), false);
-            oled_write_ln(get_time_string(), false);
-        }
     }
 }
 
 void render_right_screen(void) {
-    bool clock_enabled = is_time_set();
-
-    if (!render_chevrons()) {
-        // did render anything, can render something else here
-    }
-
-    oled_set_cursor(0, 15);
-    if (clock_enabled) {
+    if (is_time_set()) {
         // don't turn on the OLED just to update the time
         if (is_oled_on()) {
             oled_write_ln(get_time_string(), false);
         }
-    } else {
-        oled_write_ln_P(PSTR(""), false);
+    }
+
+    oled_set_cursor(0, 2);
+    if (!render_chevrons()) {
+        // did render anything, can render something else here
     }
 }
 
