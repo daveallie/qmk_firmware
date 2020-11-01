@@ -151,14 +151,14 @@ static void render_caps_lock(uint8_t row) {
 static void render_keyboard_base_info(uint8_t row) {
     oled_set_cursor(3, row);
     if (get_is_mac_mode()) {
-        char line1[3] = { 0x95, 0x96, 0 };
-        char line2[3] = { 0xB5, 0xB6, 0 };
+        char line1[3] = { 0x8A, 0x8B, 0 };
+        char line2[3] = { 0xAA, 0xAB, 0 };
         oled_write(line1, false);
         oled_set_cursor(3, row + 1);
         oled_write(line2, false);
     } else {
-        char line1[3] = { 0x97, 0x98, 0 };
-        char line2[3] = { 0xB7, 0xB8, 0 };
+        char line1[3] = { 0x8C, 0x8D, 0 };
+        char line2[3] = { 0xAC, 0xAD, 0 };
         oled_write(line1, false);
         oled_set_cursor(3, row + 1);
         oled_write(line2, false);
@@ -180,6 +180,20 @@ static void render_keyboard_base_info(uint8_t row) {
     }
 }
 
+static void render_alerts(uint8_t row) {
+    oled_set_cursor(0, row);
+    if (is_alert_count_set() && get_alert_count() > 0) {
+        oled_set_cursor(0, row);
+        char line[3] = { 0xC0, 0xC1, 0 };
+        oled_write(line, false);
+
+        oled_set_cursor(2, row);
+        oled_write(get_alert_count_string(), false);
+    } else {
+        oled_write_ln_P(PSTR(""), false);
+    }
+}
+
 static void render_left_screen(void) {
     render_time(0);
     render_layer_chevrons(2);
@@ -187,9 +201,10 @@ static void render_left_screen(void) {
     render_keyboard_base_info(14);
 }
 
-void render_right_screen(void) {
+static void render_right_screen(void) {
     render_time(0);
     render_layer_chevrons(2);
+    render_alerts(15);
 }
 
 

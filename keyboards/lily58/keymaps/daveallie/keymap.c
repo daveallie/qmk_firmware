@@ -332,9 +332,19 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #ifdef RAW_ENABLE
 
 void raw_hid_receive(uint8_t *data, uint8_t length) {
-    if (is_keyboard_master() && length >= 4) {
-        if (data[0] == 0x01 && data[1] == 0x11) {
+    // data is structured as
+    //  1st byte - control type
+    //  2nd byte - action
+    //  3rd+ byte - payload
+    if (is_keyboard_master() && length >= 2) {
+        // 0x01 is time control, 0x01 is set
+        if (data[0] == 0x01 && data[1] == 0x01 && length >= 4) {
             set_time(data[2], data[3]);
+        }
+
+        // 0x02 is alert counter control, 0x01 is set
+        if (data[0] == 0x02 && data[1] == 0x01 && length >= 3) {
+            set_alert_count(data[2]);
         }
     }
 }
